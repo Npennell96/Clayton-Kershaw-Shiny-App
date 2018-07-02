@@ -1,0 +1,949 @@
+# Data Wrangling
+  
+Decided to load and clean the data outside shiny then write the needed data to a csv. The load the csv in the shiny app deal with the large file size of the initial data.
+  
+## Loading Packges
+```{r packages, warning=FALSE, eval=FALSE, message=FALSE}
+library(ggplot2)
+library(pitchRx)# need version 1.8.4 or later for 2017 and foward games, used github veriosn for this
+library(RSQLite)
+library(dplyr)
+```
+  
+## Loading data
+```{r loading data, warning=FALSE, eval=FALSE, message=FALSE}
+# loading data
+  # loading database for each year
+    database.2008 <- src_sqlite("C:/RMIT/Data vis/Baseball/Data/pitchRx 2008.sqlite3", create = FALSE)
+    database.2009 <- src_sqlite("C:/RMIT/Data vis/Baseball/Data/pitchRx 2009.sqlite3", create = FALSE)
+    database.2010 <- src_sqlite("C:/RMIT/Data vis/Baseball/Data/pitchRx 2010.sqlite3", create = FALSE)
+    database.2011 <- src_sqlite("C:/RMIT/Data vis/Baseball/Data/pitchRx 2011.sqlite3", create = FALSE)
+    database.2012 <- src_sqlite("C:/RMIT/Data vis/Baseball/Data/pitchRx 2012.sqlite3", create = FALSE)
+    database.2013 <- src_sqlite("C:/RMIT/Data vis/Baseball/Data/pitchRx 2013.sqlite3", create = FALSE)
+    database.2014 <- src_sqlite("C:/RMIT/Data vis/Baseball/Data/pitchRx 2014.sqlite3", create = FALSE)
+    database.2015 <- src_sqlite("C:/RMIT/Data vis/Baseball/Data/pitchRx 2015.sqlite3", create = FALSE)
+    database.2016 <- src_sqlite("C:/RMIT/Data vis/Baseball/Data/pitchRx 2016.sqlite3", create = FALSE)
+    database.2017 <- src_sqlite("C:/RMIT/Data vis/Baseball/Data/pitchRx 2017.sqlite3", create = FALSE)
+    database.2018 <- src_sqlite("C:/RMIT/Data vis/Baseball/Data/pitchRx 2018.sqlite3", create = FALSE)
+  
+  # using scrap function from pitchRx 
+    scrape("2008-01-01", "2008-12-31", connect = database.2008$con)
+    scrape("2009-01-01", "2009-12-31", connect = database.2009$con)
+    scrape("2010-01-01", "2010-12-31", connect = database.2010$con)
+    scrape("2011-01-01", "2011-12-31", connect = database.2011$con)
+    scrape("2012-01-01", "2012-12-31", connect = database.2012$con)
+    scrape("2013-01-01", "2013-12-31", connect = database.2013$con)
+    scrape("2014-01-01", "2014-12-31", connect = database.2014$con)
+    scrape("2015-01-01", "2015-12-31", connect = database.2015$con)
+    scrape("2016-01-01", "2016-12-31", connect = database.2016$con)
+    scrape("2017-01-01", "2017-12-31", connect = database.2017$con)
+    scrape("2018-01-01", "2018-05-03", connect = database.2018$con)
+
+```
+It was easier to process for a computer if data was split into each year
+   
+ <a href="#top">Back to top</a>  
+     
+## Formating data
+```{r Formating, warning=FALSE, eval=FALSE, message=FALSE}
+# Formating data
+  # 2008 data, missing statcast data
+    # pitches
+      # des, type, start_speed, px, pz, pitch_type, zone, num, count, gameday_link    
+      pitches.2008 <- tbl(database.2008, "pitch")
+      pitches.2008 <- pitches.2008 %>% as.data.frame()
+      pitches.2008 <- pitches.2008[ ,c(1,4,10,16,17,30,32,42,46,47)]
+    # at bats
+      # pitcher, batter, num, stand, atbat_des, event, batter_name, pitcher_name, gamedaylink, num
+      atbat.2008 <- tbl(database.2008, "atbat")
+      atbat.2008 <- atbat.2008 %>% as.data.frame()
+      atbat.2008 <- atbat.2008[ ,c(1,2,3,9,12,14,24,25,27,28)]
+    # merge
+      total.2008 <- inner_join(pitches.2008, atbat.2008, by = c("num", "gameday_link"))
+    # formating and remvoing dates, dont want perseason games
+      total.2008$date <- format(as.Date(total.2008$date, "%Y_%m_%d"), "%Y-%m-%d")
+      # March 25 - October 29, 2008. (2008-03-25, to, 2008-10-29)
+        total.2008 <- total.2008 %>% filter(date >= '2008-03-24')
+        total.2008 <- total.2008 %>% filter(date <= '2008-10-29')  
+      # complte case
+        total.2008 <- total.2008[complete.cases(total.2008),]
+  
+  # 2009 data, missing statcast data
+    # pitches
+      # des, type, start_speed, px, pz, pitch_type, zone, num, count, gameday_link    
+      pitches.2009 <- tbl(database.2009, "pitch")
+      pitches.2009 <- pitches.2009 %>% as.data.frame()
+      pitches.2009 <- pitches.2009[ ,c(1,4,10,16,17,30,32,42,46,47)]
+    # at bats
+      # pitcher, batter, num, stand, atbat_des, event, batter_name, pitcher_name, gamedaylink, num
+      atbat.2009 <- tbl(database.2009, "atbat")
+      atbat.2009 <- atbat.2009 %>% as.data.frame()
+      atbat.2009 <- atbat.2009[ ,c(1,2,3,9,12,14,24,25,27,28)]
+    # merge
+      total.2009 <- inner_join(pitches.2009, atbat.2009, by = c("num", "gameday_link"))
+    # formating and remvoing dates, dont want perseason games
+      total.2009$date <- format(as.Date(total.2009$date, "%Y_%m_%d"), "%Y-%m-%d")
+      # April 5 - November 4, 2009. (2009-04-05, to, 2009-11-04)
+        total.2009 <- total.2009 %>% filter(date >= '2009-04-05')
+        total.2009 <- total.2009 %>% filter(date <= '2009-11-04')  
+    # complte case
+      total.2009 <- total.2009[complete.cases(total.2009),]
+      
+  # 2010 data, missing statcast data
+    # pitches
+      # des, type, start_speed, px, pz, pitch_type, zone, num, count, gameday_link    
+      pitches.2010 <- tbl(database.2010, "pitch")
+      pitches.2010 <- pitches.2010 %>% as.data.frame()
+      pitches.2010 <- pitches.2010[ ,c(1,4,10,16,17,30,32,42,46,47)]
+     # at bats
+      # pitcher, batter, num, stand, atbat_des, event, batter_name, pitcher_name, gamedaylink, num
+      atbat.2010 <- tbl(database.2010, "atbat")
+      atbat.2010 <- atbat.2010 %>% as.data.frame()
+      atbat.2010 <- atbat.2010[ ,c(1,2,3,9,12,14,24,25,27,28)]
+    # merge
+      total.2010 <- inner_join(pitches.2010, atbat.2010, by = c("num", "gameday_link"))
+    # formating and remvoing dates, dont want perseason games
+      total.2010$date <- format(as.Date(total.2010$date, "%Y_%m_%d"), "%Y-%m-%d")
+      # April 4 - November 1, 2010. (2010-04-04, to, 2010-11-01)
+        total.2010 <- total.2010 %>% filter(date >= '2010-04-04')
+        total.2010 <- total.2010 %>% filter(date <= '2010-11-01')  
+    # complte case
+      total.2010 <- total.2010[complete.cases(total.2010),]
+      
+      
+  # 2011 data, missing statcast data
+    # pitches
+      # des, type, start_speed, px, pz, pitch_type, zone, num, count, gameday_link    
+      pitches.2011 <- tbl(database.2011, "pitch")
+      pitches.2011 <- pitches.2011 %>% as.data.frame()
+      pitches.2011 <- pitches.2011[ ,c(1,4,10,16,17,30,32,42,46,47)]
+    # at bats
+      # pitcher, batter, num, stand, atbat_des, event, batter_name, pitcher_name, gamedaylink, num
+      atbat.2011 <- tbl(database.2011, "atbat")
+      atbat.2011 <- atbat.2011 %>% as.data.frame()
+      atbat.2011 <- atbat.2011[ ,c(1,2,3,9,12,14,24,25,27,28)]
+    # merge
+      total.2011 <- inner_join(pitches.2011, atbat.2011, by = c("num", "gameday_link"))
+    # formating and remvoing dates, dont want perseason games
+      total.2011$date <- format(as.Date(total.2011$date, "%Y_%m_%d"), "%Y-%m-%d")
+      # March 31 - October 28, 2011. (2011-03-31, to, 2011-10-28)
+        total.2011 <- total.2011 %>% filter(date >= '2011-03-31')
+        total.2011 <- total.2011 %>% filter(date <= '2011-10-28')  
+    # complte case
+      total.2011 <- total.2011[complete.cases(total.2011),]
+        
+  # 2012 data, missing statcast data
+    # pitches
+      # des, type, start_speed, px, pz, pitch_type, zone, num, count, gameday_link    
+      pitches.2012 <- tbl(database.2012, "pitch")
+      pitches.2012 <- pitches.2012 %>% as.data.frame()
+      pitches.2012 <- pitches.2012[ ,c(1,4,10,16,17,30,32,42,46,47)]
+    # at bats
+      # pitcher, batter, num, stand, atbat_des, event, batter_name, pitcher_name, gamedaylink, num
+      atbat.2012 <- tbl(database.2012, "atbat")
+      atbat.2012 <- atbat.2012 %>% as.data.frame()
+      atbat.2012 <- atbat.2012[ ,c(1,2,3,9,12,14,24,25,27,28)]
+    # merge
+      total.2012 <- inner_join(pitches.2012, atbat.2012, by = c("num", "gameday_link"))
+    # formating and remvoing dates, dont want perseason games
+      total.2012$date <- format(as.Date(total.2012$date, "%Y_%m_%d"), "%Y-%m-%d")
+      # March 28 - October 28, 2012. (2012-03-28, to, 2012-10-28)
+        total.2012 <- total.2012 %>% filter(date >= '2012-03-28')
+        total.2012 <- total.2012 %>% filter(date <= '2012-10-28')  
+    # complte case
+      total.2012 <- total.2012[complete.cases(total.2012),]  
+      
+  # 2013 data, missing statcast data
+    # pitches
+      # des, type, start_speed, px, pz, pitch_type, zone, num, count, gameday_link    
+      pitches.2013 <- tbl(database.2013, "pitch")
+      pitches.2013 <- pitches.2013 %>% as.data.frame()
+      pitches.2013 <- pitches.2013[ ,c(1,4,10,16,17,30,32,42,46,47)]
+      # at bats
+      # pitcher, batter, num, stand, atbat_des, event, batter_name, pitcher_name, gamedaylink, num
+      atbat.2013 <- tbl(database.2013, "atbat")
+      atbat.2013 <- atbat.2013 %>% as.data.frame()
+      atbat.2013 <- atbat.2013[ ,c(1,2,3,9,12,14,24,25,27,28)]
+    # merge
+      total.2013 <- inner_join(pitches.2013, atbat.2013, by = c("num", "gameday_link"))
+    # formating and remvoing dates, dont want perseason games
+      total.2013$date <- format(as.Date(total.2013$date, "%Y_%m_%d"), "%Y-%m-%d")
+      # March 31 - October 30, 2013. (2013-03-31, to, 2013-10-30)
+        total.2013 <- total.2013 %>% filter(date >= '2013-03-31')
+        total.2013 <- total.2013 %>% filter(date <= '2013-10-30')  
+    # complte case
+      total.2013 <- total.2013[complete.cases(total.2013),]
+      
+  # 2014 data, missing statcast data
+    # pitches
+      # des, type, start_speed, px, pz, pitch_type, zone, num, count, gameday_link    
+      pitches.2014 <- tbl(database.2014, "pitch")
+      pitches.2014 <- pitches.2014 %>% as.data.frame()
+      pitches.2014 <- pitches.2014[ ,c(1,4,10,16,17,30,32,42,46,47)]
+    # at bats
+      # pitcher, batter, num, stand, atbat_des, event, batter_name, pitcher_name, gamedaylink, num
+      atbat.2014 <- tbl(database.2014, "atbat")
+      atbat.2014 <- atbat.2014 %>% as.data.frame()
+      atbat.2014 <- atbat.2014[ ,c(1,2,3,9,12,14,24,25,27,28)]
+    # merge
+      total.2014 <- inner_join(pitches.2014, atbat.2014, by = c("num", "gameday_link"))
+    # formating and remvoing dates, dont want perseason games
+      total.2014$date <- format(as.Date(total.2014$date, "%Y_%m_%d"), "%Y-%m-%d")
+      # March 22 - October 29, 2014. (2014-03-22, to, 2014-10-29)
+        total.2014 <- total.2014 %>% filter(date >= '2014-03-22')
+        total.2014 <- total.2014 %>% filter(date <= '2014-10-29')  
+    # complte case
+      total.2014 <- total.2014[complete.cases(total.2014),]
+
+  # 2015 data, missing statcast data
+    # pitches
+      # des, type, start_speed, px, pz, pitch_type, zone, num, count, gameday_link    
+      pitches.2015 <- tbl(database.2015, "pitch")
+      pitches.2015 <- pitches.2015 %>% as.data.frame()
+      pitches.2015 <- pitches.2015[ ,c(1,4,10,16,17,30,32,42,46,47)]
+    # at bats
+      # pitcher, batter, num, stand, atbat_des, event, batter_name, pitcher_name, gamedaylink, num
+      atbat.2015 <- tbl(database.2015, "atbat")
+      atbat.2015 <- atbat.2015 %>% as.data.frame()
+      atbat.2015 <- atbat.2015[ ,c(1,2,3,9,12,14,24,25,27,28)]
+    # merge
+      total.2015 <- inner_join(pitches.2015, atbat.2015, by = c("num", "gameday_link")) 
+    # formating and remvoing dates, dont want perseason games
+      total.2015$date <- format(as.Date(total.2015$date, "%Y_%m_%d"), "%Y-%m-%d")
+      # April 5 - November 1, 2015. (2015-04-05, to, 2015-11-01)
+        total.2015 <- total.2015 %>% filter(date >= '2015-04-05')
+        total.2015 <- total.2015 %>% filter(date <= '2015-11-01')  
+    # complte case
+      total.2015 <- total.2015[complete.cases(total.2015),]
+      
+  # 2016 data, missing statcast data
+    # pitches
+      # des, type, start_speed, px, pz, pitch_type, zone, num, count, gameday_link    
+      pitches.2016 <- tbl(database.2016, "pitch")
+      pitches.2016 <- pitches.2016 %>% as.data.frame()
+      pitches.2016 <- pitches.2016[ ,c(1,4,10,16,17,30,32,42,46,47)]
+    # at bats
+      # pitcher, batter, num, stand, atbat_des, event, batter_name, pitcher_name, gamedaylink, num
+      atbat.2016 <- tbl(database.2016, "atbat")
+      atbat.2016 <- atbat.2016 %>% as.data.frame()
+      atbat.2016 <- atbat.2016[ ,c(1,2,3,9,12,14,24,25,27,28)]
+    # merge
+      total.2016 <- inner_join(pitches.2016, atbat.2016, by = c("num", "gameday_link"))
+    # formating and remvoing dates, dont want perseason games
+      total.2016$date <- format(as.Date(total.2016$date, "%Y_%m_%d"), "%Y-%m-%d")
+      # April 3 - November 2, 2016. (2016-04-03, to, 2016-11-02)
+        total.2016 <- total.2016 %>% filter(date >= '2016-04-03')
+        total.2016 <- total.2016 %>% filter(date <= '2016-11-02')  
+    # complte case
+      total.2016 <- total.2016[complete.cases(total.2016),]
+      
+  # 2017 data, missing statcast data
+    # pitches
+      # des, type, start_speed, px, pz, pitch_type, zone, num, count, gameday_link    
+      pitches.2017 <- tbl(database.2017, "pitch")
+      pitches.2017 <- pitches.2017 %>% as.data.frame()
+      pitches.2017 <- pitches.2017[ ,c(1,4,10,16,17,30,32,42,46,47)]
+    # at bats
+      # pitcher, batter, num, stand, atbat_des, event, batter_name, pitcher_name, gamedaylink, num
+      atbat.2017 <- tbl(database.2017, "atbat")
+      atbat.2017 <- atbat.2017 %>% as.data.frame()
+      atbat.2017 <- atbat.2017[ ,c(1,2,3,9,12,14,24,25,27,28)]
+    # merge
+      total.2017 <- inner_join(pitches.2017, atbat.2017, by = c("num", "gameday_link"))
+    # formating and remvoing dates, dont want perseason games
+      total.2017$date <- format(as.Date(total.2017$date, "%Y_%m_%d"), "%Y-%m-%d")
+      # April 2 - November 1, 2017. (2017-04-02, to, 2017-11-01)
+        total.2017 <- total.2017 %>% filter(date >= '2017-04-02')
+        total.2017 <- total.2017 %>% filter(date <= '2017-11-01')  
+    # complte case
+      total.2017 <- total.2017[complete.cases(total.2017),]
+      
+  # 2018 data, missing statcast data
+    # pitches
+      # des, type, start_speed, px, pz, pitch_type, zone, num, count, gameday_link    
+      pitches.2018 <- tbl(database.2018, "pitch")
+      pitches.2018 <- pitches.2018 %>% as.data.frame()
+      pitches.2018 <- pitches.2018[ ,c(1,4,10,16,17,30,32,42,46,47)]
+    # at bats
+      # pitcher, batter, num, stand, atbat_des, event, batter_name, pitcher_name, gamedaylink, num
+      atbat.2018 <- tbl(database.2018, "atbat")
+      atbat.2018 <- atbat.2018 %>% as.data.frame()
+      atbat.2018 <- atbat.2018[ ,c(1,2,3,9,12,14,24,25,27,28)]
+    # merge
+      total.2018 <- inner_join(pitches.2018, atbat.2018, by = c("num", "gameday_link"))
+    # formating and remvoing dates, dont want perseason games
+      total.2018$date <- format(as.Date(total.2018$date, "%Y_%m_%d"), "%Y-%m-%d")
+    # March 29 - to article date. (2018-03-29, to, 2018-06-03)
+      total.2018 <- total.2018 %>% filter(date >= '2018-03-29')
+      total.2018 <- total.2018 %>% filter(date <= '2018-06-03')  
+      # complte case
+      total.2018 <- total.2018[complete.cases(total.2018),]
+
+
+```
+<a href="#top">Back to top</a>  
+  
+    
+## Gathering Subset of Data, For Needed Player (Clayton Kershaw)
+```{r Kershaw, warning=FALSE, eval=FALSE, message=FALSE}
+# spliting gathering Clayton Kershaw pitches
+  # filter per year
+    Kershaw.2008 <- total.2008 %>% filter(pitcher_name == "Clayton Kershaw")
+    Kershaw.2009 <- total.2009 %>% filter(pitcher_name == "Clayton Kershaw")
+    Kershaw.2010 <- total.2010 %>% filter(pitcher_name == "Clayton Kershaw")
+    Kershaw.2011 <- total.2011 %>% filter(pitcher_name == "Clayton Kershaw")
+    Kershaw.2012 <- total.2012 %>% filter(pitcher_name == "Clayton Kershaw")
+    Kershaw.2013 <- total.2013 %>% filter(pitcher_name == "Clayton Kershaw")
+    Kershaw.2014 <- total.2014 %>% filter(pitcher_name == "Clayton Kershaw")
+    Kershaw.2015 <- total.2015 %>% filter(pitcher_name == "Clayton Kershaw")
+    Kershaw.2016 <- total.2016 %>% filter(pitcher_name == "Clayton Kershaw")
+    Kershaw.2017 <- total.2017 %>% filter(pitcher_name == "Clayton Kershaw")
+    Kershaw.2018 <- total.2018 %>% filter(pitcher_name == "Clayton Kershaw")
+  # merging
+    Kershaw.total <- Kershaw.2008 %>% bind_rows(Kershaw.2009)
+    Kershaw.total <- Kershaw.total %>% bind_rows(Kershaw.2010)
+    Kershaw.total <- Kershaw.total %>% bind_rows(Kershaw.2011)
+    Kershaw.total <- Kershaw.total %>% bind_rows(Kershaw.2012)
+    Kershaw.total <- Kershaw.total %>% bind_rows(Kershaw.2013)
+    Kershaw.total <- Kershaw.total %>% bind_rows(Kershaw.2014)
+    Kershaw.total <- Kershaw.total %>% bind_rows(Kershaw.2015)
+    Kershaw.total <- Kershaw.total %>% bind_rows(Kershaw.2016)
+    Kershaw.total <- Kershaw.total %>% bind_rows(Kershaw.2017)
+    Kershaw.total <- Kershaw.total %>% bind_rows(Kershaw.2018)
+  
+  # adding full pitch name
+    Kershaw.total$pitch_desc <- Kershaw.total$pitch_type
+    
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='FA'] <- "Fastball"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='FF'] <- "Four-Seam Fastball"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='FT'] <- "Two-seam Fastball"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='FC'] <- "Cutter"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='FS'] <- "Splitter"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='PO'] <- "Pitch Out"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='FO'] <- "Pitch Out"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='SI'] <- "Sinker"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='SL'] <- "Slider"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='CU'] <- "Curveball"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='KC'] <- "Knuckle-curve"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='EP'] <- "Eephus"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='CH'] <- "Changeup"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='SC'] <- "Screwball"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='KN'] <- "Knuckleball"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='AB'] <- "Automatic Ball"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='IN'] <- "Intentional Walk"
+    Kershaw.total$pitch_desc[Kershaw.total$pitch_type =='UN'] <- "Unknow"
+  # exluding unwanted pitch types
+    exclude.pitch.type <- c("Intentional Walk", "Automatic Ball", "Pitch Out", "Unknow", NA)
+    Kershaw.total <- Kershaw.total %>% filter(!pitch_desc %in% exclude.pitch.type)
+    
+  # Adding output comloum
+    Kershaw.total$outcome <- ifelse(Kershaw.total$type == "X", Kershaw.total$event, NA)
+    Kershaw.total$outcome <- ifelse(Kershaw.total$outcome %in% c("Single", "Triple", "Double"), 
+                                    "Hit", Kershaw.total$outcome)
+    Kershaw.total$outcome <- ifelse(Kershaw.total$des %in% 
+                                      c("Swinging Strike", "Swinging Strike (Blocked)"),
+                                    "Swing and Miss", Kershaw.total$outcome)
+    Kershaw.total$outcome <- ifelse(Kershaw.total$outcome %in% c("Hit", "Home Run", "Swing and Miss"),
+                                    Kershaw.total$outcome, NA)
+    
+# writing to csv to use in shiny
+  write.csv(Kershaw.total, file = "C:/RMIT/Data vis/Assignment 3/Data/Kershaw total.csv")
+```
+<a href="#top">Back to top</a>
+   
+   
+## Finding Kershaw Average Speed For Main Pitches
+```{r Kershaw ave., warning=FALSE, eval=FALSE, message=FALSE }
+# Finding Kershaw ave. speed  
+  # Four-seam Fastball (FF)
+    # Getting data
+      Kershaw.FF.2008 <- Kershaw.2008[ ,c(6, 3)] %>% filter(pitch_type == "FF")
+      Kershaw.FF.2009 <- Kershaw.2009[ ,c(6, 3)] %>% filter(pitch_type == "FF")
+      Kershaw.FF.2010 <- Kershaw.2010[ ,c(6, 3)] %>% filter(pitch_type == "FF")
+      Kershaw.FF.2011 <- Kershaw.2011[ ,c(6, 3)] %>% filter(pitch_type == "FF")
+      Kershaw.FF.2012 <- Kershaw.2012[ ,c(6, 3)] %>% filter(pitch_type == "FF")
+      Kershaw.FF.2013 <- Kershaw.2013[ ,c(6, 3)] %>% filter(pitch_type == "FF")
+      Kershaw.FF.2014 <- Kershaw.2014[ ,c(6, 3)] %>% filter(pitch_type == "FF")
+      Kershaw.FF.2015 <- Kershaw.2015[ ,c(6, 3)] %>% filter(pitch_type == "FF")
+      Kershaw.FF.2016 <- Kershaw.2016[ ,c(6, 3)] %>% filter(pitch_type == "FF")
+      Kershaw.FF.2017 <- Kershaw.2017[ ,c(6, 3)] %>% filter(pitch_type == "FF")
+      Kershaw.FF.2018 <- Kershaw.2018[ ,c(6, 3)] %>% filter(pitch_type == "FF")
+  
+    # Kershaw.ave.speed
+      Kershaw.FF.2008 <- data.frame("2008", "Kershaw Four-Seam Fastball", 
+                                    mean(Kershaw.FF.2008$start_speed))
+      colnames(Kershaw.FF.2008) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.FF.2009 <- data.frame("2009", "Kershaw Four-Seam Fastball", 
+                                    mean(Kershaw.FF.2009$start_speed))
+      colnames(Kershaw.FF.2009) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.FF.2010 <- data.frame("2010", "Kershaw Four-Seam Fastball", 
+                                    mean(Kershaw.FF.2010$start_speed))
+      colnames(Kershaw.FF.2010) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.FF.2011 <- data.frame("2011", "Kershaw Four-Seam Fastball", 
+                                    mean(Kershaw.FF.2011$start_speed))
+      colnames(Kershaw.FF.2011) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.FF.2012 <- data.frame("2012", "Kershaw Four-Seam Fastball", 
+                                    mean(Kershaw.FF.2012$start_speed))
+      colnames(Kershaw.FF.2012) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.FF.2013 <- data.frame("2013", "Kershaw Four-Seam Fastball", 
+                                    mean(Kershaw.FF.2013$start_speed))
+      colnames(Kershaw.FF.2013) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.FF.2014 <- data.frame("2014", "Kershaw Four-Seam Fastball", 
+                                    mean(Kershaw.FF.2014$start_speed))
+      colnames(Kershaw.FF.2014) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.FF.2015 <- data.frame("2015", "Kershaw Four-Seam Fastball", 
+                                    mean(Kershaw.FF.2015$start_speed))
+      colnames(Kershaw.FF.2015) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.FF.2016 <- data.frame("2016", "Kershaw Four-Seam Fastball", 
+                                    mean(Kershaw.FF.2016$start_speed))
+      colnames(Kershaw.FF.2016) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.FF.2017 <- data.frame("2017", "Kershaw Four-Seam Fastball", 
+                                    mean(Kershaw.FF.2017$start_speed))
+      colnames(Kershaw.FF.2017) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.FF.2018 <- data.frame("2018", "Kershaw Four-Seam Fastball", 
+                                    mean(Kershaw.FF.2018$start_speed))
+      colnames(Kershaw.FF.2018) <- c("Year", "Pitch Type", "ave. speed")
+      
+    # Megre
+      Kershaw.FF <- Kershaw.FF.2008 %>% bind_rows(Kershaw.FF.2009)
+      Kershaw.FF <- Kershaw.FF %>% bind_rows(Kershaw.FF.2010)
+      Kershaw.FF <- Kershaw.FF %>% bind_rows(Kershaw.FF.2011)
+      Kershaw.FF <- Kershaw.FF %>% bind_rows(Kershaw.FF.2012)
+      Kershaw.FF <- Kershaw.FF %>% bind_rows(Kershaw.FF.2013)
+      Kershaw.FF <- Kershaw.FF %>% bind_rows(Kershaw.FF.2014)
+      Kershaw.FF <- Kershaw.FF %>% bind_rows(Kershaw.FF.2015)
+      Kershaw.FF <- Kershaw.FF %>% bind_rows(Kershaw.FF.2016)
+      Kershaw.FF <- Kershaw.FF %>% bind_rows(Kershaw.FF.2017)
+      Kershaw.FF <- Kershaw.FF %>% bind_rows(Kershaw.FF.2018)
+      
+  # Slider (SL)
+    # Getting data
+      Kershaw.SL.2008 <- Kershaw.2008[ ,c(6, 3)] %>% filter(pitch_type == "SL")
+      Kershaw.SL.2009 <- Kershaw.2009[ ,c(6, 3)] %>% filter(pitch_type == "SL")
+      Kershaw.SL.2010 <- Kershaw.2010[ ,c(6, 3)] %>% filter(pitch_type == "SL")
+      Kershaw.SL.2011 <- Kershaw.2011[ ,c(6, 3)] %>% filter(pitch_type == "SL")
+      Kershaw.SL.2012 <- Kershaw.2012[ ,c(6, 3)] %>% filter(pitch_type == "SL")
+      Kershaw.SL.2013 <- Kershaw.2013[ ,c(6, 3)] %>% filter(pitch_type == "SL")
+      Kershaw.SL.2014 <- Kershaw.2014[ ,c(6, 3)] %>% filter(pitch_type == "SL")
+      Kershaw.SL.2015 <- Kershaw.2015[ ,c(6, 3)] %>% filter(pitch_type == "SL")
+      Kershaw.SL.2016 <- Kershaw.2016[ ,c(6, 3)] %>% filter(pitch_type == "SL")
+      Kershaw.SL.2017 <- Kershaw.2017[ ,c(6, 3)] %>% filter(pitch_type == "SL")
+      Kershaw.SL.2018 <- Kershaw.2018[ ,c(6, 3)] %>% filter(pitch_type == "SL")
+      
+    # Kershaw.ave.speed
+      Kershaw.SL.2008 <- data.frame("2008", "Kershaw Slider", 
+                                    mean(Kershaw.SL.2008$start_speed))
+      colnames(Kershaw.SL.2008) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.SL.2009 <- data.frame("2009", "Kershaw Slider", 
+                                    mean(Kershaw.SL.2009$start_speed))
+      colnames(Kershaw.SL.2009) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.SL.2010 <- data.frame("2010", "Kershaw Slider", 
+                                    mean(Kershaw.SL.2010$start_speed))
+      colnames(Kershaw.SL.2010) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.SL.2011 <- data.frame("2011", "Kershaw Slider", 
+                                    mean(Kershaw.SL.2011$start_speed))
+      colnames(Kershaw.SL.2011) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.SL.2012 <- data.frame("2012", "Kershaw Slider", 
+                                    mean(Kershaw.SL.2012$start_speed))
+      colnames(Kershaw.SL.2012) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.SL.2013 <- data.frame("2013", "Kershaw Slider", 
+                                    mean(Kershaw.SL.2013$start_speed))
+      colnames(Kershaw.SL.2013) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.SL.2014 <- data.frame("2014", "Kershaw Slider", 
+                                    mean(Kershaw.SL.2014$start_speed))
+      colnames(Kershaw.SL.2014) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.SL.2015 <- data.frame("2015", "Kershaw Slider", 
+                                    mean(Kershaw.SL.2015$start_speed))
+      colnames(Kershaw.SL.2015) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.SL.2016 <- data.frame("2016", "Kershaw Slider", 
+                                    mean(Kershaw.SL.2016$start_speed))
+      colnames(Kershaw.SL.2016) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.SL.2017 <- data.frame("2017", "Kershaw Slider", 
+                                    mean(Kershaw.SL.2017$start_speed))
+      colnames(Kershaw.SL.2017) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.SL.2018 <- data.frame("2018", "Kershaw Slider", 
+                                    mean(Kershaw.SL.2018$start_speed))
+      colnames(Kershaw.SL.2018) <- c("Year", "Pitch Type", "ave. speed")
+      
+    # Megre
+      Kershaw.SL <- Kershaw.SL.2008 %>% bind_rows(Kershaw.SL.2009)
+      Kershaw.SL <- Kershaw.SL %>% bind_rows(Kershaw.SL.2010)
+      Kershaw.SL <- Kershaw.SL %>% bind_rows(Kershaw.SL.2011)
+      Kershaw.SL <- Kershaw.SL %>% bind_rows(Kershaw.SL.2012)
+      Kershaw.SL <- Kershaw.SL %>% bind_rows(Kershaw.SL.2013)
+      Kershaw.SL <- Kershaw.SL %>% bind_rows(Kershaw.SL.2014)
+      Kershaw.SL <- Kershaw.SL %>% bind_rows(Kershaw.SL.2015)
+      Kershaw.SL <- Kershaw.SL %>% bind_rows(Kershaw.SL.2016)
+      Kershaw.SL <- Kershaw.SL %>% bind_rows(Kershaw.SL.2017)
+      Kershaw.SL <- Kershaw.SL %>% bind_rows(Kershaw.SL.2018)
+      
+  # Curveball (CU)
+    # Getting data
+      Kershaw.CU.2008 <- Kershaw.2008[ ,c(6, 3)] %>% filter(pitch_type == "CU")
+      Kershaw.CU.2009 <- Kershaw.2009[ ,c(6, 3)] %>% filter(pitch_type == "CU")
+      Kershaw.CU.2010 <- Kershaw.2010[ ,c(6, 3)] %>% filter(pitch_type == "CU")
+      Kershaw.CU.2011 <- Kershaw.2011[ ,c(6, 3)] %>% filter(pitch_type == "CU")
+      Kershaw.CU.2012 <- Kershaw.2012[ ,c(6, 3)] %>% filter(pitch_type == "CU")
+      Kershaw.CU.2013 <- Kershaw.2013[ ,c(6, 3)] %>% filter(pitch_type == "CU")
+      Kershaw.CU.2014 <- Kershaw.2014[ ,c(6, 3)] %>% filter(pitch_type == "CU")
+      Kershaw.CU.2015 <- Kershaw.2015[ ,c(6, 3)] %>% filter(pitch_type == "CU")
+      Kershaw.CU.2016 <- Kershaw.2016[ ,c(6, 3)] %>% filter(pitch_type == "CU")
+      Kershaw.CU.2017 <- Kershaw.2017[ ,c(6, 3)] %>% filter(pitch_type == "CU")
+      Kershaw.CU.2018 <- Kershaw.2018[ ,c(6, 3)] %>% filter(pitch_type == "CU")
+      
+    # Kershaw.ave.speed
+      Kershaw.CU.2008 <- data.frame("2008", "Kershaw Curveball", 
+                                    mean(Kershaw.CU.2008$start_speed))
+      colnames(Kershaw.CU.2008) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CU.2009 <- data.frame("2009", "Kershaw Curveball", 
+                                    mean(Kershaw.CU.2009$start_speed))
+      colnames(Kershaw.CU.2009) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CU.2010 <- data.frame("2010", "Kershaw Curveball", 
+                                    mean(Kershaw.CU.2010$start_speed))
+      colnames(Kershaw.CU.2010) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CU.2011 <- data.frame("2011", "Kershaw Curveball", 
+                                    mean(Kershaw.CU.2011$start_speed))
+      colnames(Kershaw.CU.2011) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CU.2012 <- data.frame("2012", "Kershaw Curveball", 
+                                    mean(Kershaw.CU.2012$start_speed))
+      colnames(Kershaw.CU.2012) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CU.2013 <- data.frame("2013", "Kershaw Curveball", 
+                                    mean(Kershaw.CU.2013$start_speed))
+      colnames(Kershaw.CU.2013) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CU.2014 <- data.frame("2014", "Kershaw Curveball", 
+                                    mean(Kershaw.CU.2014$start_speed))
+      colnames(Kershaw.CU.2014) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CU.2015 <- data.frame("2015", "Kershaw Curveball", 
+                                    mean(Kershaw.CU.2015$start_speed))
+      colnames(Kershaw.CU.2015) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CU.2016 <- data.frame("2016", "Kershaw Curveball", 
+                                    mean(Kershaw.CU.2016$start_speed))
+      colnames(Kershaw.CU.2016) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CU.2017 <- data.frame("2017", "Kershaw Curveball", 
+                                    mean(Kershaw.CU.2017$start_speed))
+      colnames(Kershaw.CU.2017) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CU.2018 <- data.frame("2018", "Kershaw Curveball", 
+                                    mean(Kershaw.CU.2018$start_speed))
+      colnames(Kershaw.CU.2018) <- c("Year", "Pitch Type", "ave. speed")
+      
+    # Megre
+      Kershaw.CU <- Kershaw.CU.2008 %>% bind_rows(Kershaw.CU.2009)
+      Kershaw.CU <- Kershaw.CU %>% bind_rows(Kershaw.CU.2010)
+      Kershaw.CU <- Kershaw.CU %>% bind_rows(Kershaw.CU.2011)
+      Kershaw.CU <- Kershaw.CU %>% bind_rows(Kershaw.CU.2012)
+      Kershaw.CU <- Kershaw.CU %>% bind_rows(Kershaw.CU.2013)
+      Kershaw.CU <- Kershaw.CU %>% bind_rows(Kershaw.CU.2014)
+      Kershaw.CU <- Kershaw.CU %>% bind_rows(Kershaw.CU.2015)
+      Kershaw.CU <- Kershaw.CU %>% bind_rows(Kershaw.CU.2016)
+      Kershaw.CU <- Kershaw.CU %>% bind_rows(Kershaw.CU.2017)
+      Kershaw.CU <- Kershaw.CU %>% bind_rows(Kershaw.CU.2018)
+      
+  # Changeup (CH)
+    # Getting data
+      Kershaw.CH.2008 <- Kershaw.2008[ ,c(6, 3)] %>% filter(pitch_type == "CH")
+      Kershaw.CH.2009 <- Kershaw.2009[ ,c(6, 3)] %>% filter(pitch_type == "CH")
+      Kershaw.CH.2010 <- Kershaw.2010[ ,c(6, 3)] %>% filter(pitch_type == "CH")
+      Kershaw.CH.2011 <- Kershaw.2011[ ,c(6, 3)] %>% filter(pitch_type == "CH")
+      Kershaw.CH.2012 <- Kershaw.2012[ ,c(6, 3)] %>% filter(pitch_type == "CH")
+      Kershaw.CH.2013 <- Kershaw.2013[ ,c(6, 3)] %>% filter(pitch_type == "CH")
+      Kershaw.CH.2014 <- Kershaw.2014[ ,c(6, 3)] %>% filter(pitch_type == "CH")
+      Kershaw.CH.2015 <- Kershaw.2015[ ,c(6, 3)] %>% filter(pitch_type == "CH")
+      Kershaw.CH.2016 <- Kershaw.2016[ ,c(6, 3)] %>% filter(pitch_type == "CH")
+      Kershaw.CH.2017 <- Kershaw.2017[ ,c(6, 3)] %>% filter(pitch_type == "CH")
+      Kershaw.CH.2018 <- Kershaw.2018[ ,c(6, 3)] %>% filter(pitch_type == "CH")
+      
+    # Kershaw.ave.speed
+      Kershaw.CH.2008 <- data.frame("2008", "Kershaw Changeup", 
+                                    mean(Kershaw.CH.2008$start_speed))
+      colnames(Kershaw.CH.2008) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CH.2009 <- data.frame("2009", "Kershaw Changeup", 
+                                    mean(Kershaw.CH.2009$start_speed))
+      colnames(Kershaw.CH.2009) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CH.2010 <- data.frame("2010", "Kershaw Changeup", 
+                                    mean(Kershaw.CH.2010$start_speed))
+      colnames(Kershaw.CH.2010) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CH.2011 <- data.frame("2011", "Kershaw Changeup", 
+                                    mean(Kershaw.CH.2011$start_speed))
+      colnames(Kershaw.CH.2011) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CH.2012 <- data.frame("2012", "Kershaw Changeup", 
+                                    mean(Kershaw.CH.2012$start_speed))
+      colnames(Kershaw.CH.2012) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CH.2013 <- data.frame("2013", "Kershaw Changeup", 
+                                    mean(Kershaw.CH.2013$start_speed))
+      colnames(Kershaw.CH.2013) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CH.2014 <- data.frame("2014", "Kershaw Changeup", 
+                                    mean(Kershaw.CH.2014$start_speed))
+      colnames(Kershaw.CH.2014) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CH.2015 <- data.frame("2015", "Kershaw Changeup", 
+                                    mean(Kershaw.CH.2015$start_speed))
+      colnames(Kershaw.CH.2015) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CH.2016 <- data.frame("2016", "Kershaw Changeup", 
+                                    mean(Kershaw.CH.2016$start_speed))
+      colnames(Kershaw.CH.2016) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CH.2017 <- data.frame("2017", "Kershaw Changeup", 
+                                    mean(Kershaw.CH.2017$start_speed))
+      colnames(Kershaw.CH.2017) <- c("Year", "Pitch Type", "ave. speed")
+      
+      Kershaw.CH.2018 <- data.frame("2018", "Kershaw Changeup", 
+                                    mean(Kershaw.CH.2018$start_speed))
+      colnames(Kershaw.CH.2018) <- c("Year", "Pitch Type", "ave. speed")
+      
+    # Megre
+      Kershaw.CH <- Kershaw.CH.2008 %>% bind_rows(Kershaw.CH.2009)
+      Kershaw.CH <- Kershaw.CH %>% bind_rows(Kershaw.CH.2010)
+      Kershaw.CH <- Kershaw.CH %>% bind_rows(Kershaw.CH.2011)
+      Kershaw.CH <- Kershaw.CH %>% bind_rows(Kershaw.CH.2012)
+      Kershaw.CH <- Kershaw.CH %>% bind_rows(Kershaw.CH.2013)
+      Kershaw.CH <- Kershaw.CH %>% bind_rows(Kershaw.CH.2014)
+      Kershaw.CH <- Kershaw.CH %>% bind_rows(Kershaw.CH.2015)
+      Kershaw.CH <- Kershaw.CH %>% bind_rows(Kershaw.CH.2016)
+      Kershaw.CH <- Kershaw.CH %>% bind_rows(Kershaw.CH.2017)
+      Kershaw.CH <- Kershaw.CH %>% bind_rows(Kershaw.CH.2018)
+  
+  # Total Merge
+    Kershaw.speed <- Kershaw.FF %>% bind_rows(Kershaw.SL)
+    Kershaw.speed <- Kershaw.speed %>% bind_rows(Kershaw.CU)
+    Kershaw.speed <- Kershaw.speed %>% bind_rows(Kershaw.CH)
+  
+# writing to csv for shiny
+  write.csv(Kershaw.speed, file = "C:/RMIT/Data vis/Assignment 3/Data/Kershaw speed.csv")
+```
+<a href="#top">Back to top</a>
+  
+    
+## Finding League Average For the Same Pitches
+```{r ave. speeds, warning=FALSE, eval=FALSE, message=FALSE}
+# Finding Ave.speeds
+  # Four-seam Fastball (FF)
+    # Getting Data  
+      FF.2008 <- total.2008 %>% filter(pitch_type == "FF")
+      FF.2009 <- total.2009 %>% filter(pitch_type == "FF")
+      FF.2010 <- total.2010 %>% filter(pitch_type == "FF")
+      FF.2011 <- total.2011 %>% filter(pitch_type == "FF")
+      FF.2012 <- total.2012 %>% filter(pitch_type == "FF")
+      FF.2013 <- total.2013 %>% filter(pitch_type == "FF")
+      FF.2014 <- total.2014 %>% filter(pitch_type == "FF")
+      FF.2015 <- total.2015 %>% filter(pitch_type == "FF")
+      FF.2016 <- total.2016 %>% filter(pitch_type == "FF")
+      FF.2017 <- total.2017 %>% filter(pitch_type == "FF")
+      FF.2018 <- total.2018 %>% filter(pitch_type == "FF")
+    # Taking speeds
+      FF.2008 <- FF.2008[ ,c(6, 3)]
+      FF.2009 <- FF.2009[ ,c(6, 3)]
+      FF.2010 <- FF.2010[ ,c(6, 3)]
+      FF.2011 <- FF.2011[ ,c(6, 3)]
+      FF.2012 <- FF.2012[ ,c(6, 3)]
+      FF.2013 <- FF.2013[ ,c(6, 3)]
+      FF.2014 <- FF.2014[ ,c(6, 3)]
+      FF.2015 <- FF.2015[ ,c(6, 3)]
+      FF.2016 <- FF.2016[ ,c(6, 3)]
+      FF.2017 <- FF.2017[ ,c(6, 3)]
+      FF.2018 <- FF.2018[ ,c(6, 3)]
+    # ave.
+      FF.2008 <-data.frame("2008", "FF", mean(FF.2008$start_speed))
+      colnames(FF.2008) <- c("Year", "Pitch Type", "ave. speed")
+        
+      FF.2009 <-data.frame("2009", "FF", mean(FF.2009$start_speed))
+      colnames(FF.2009) <- c("Year", "Pitch Type", "ave. speed")
+      
+      FF.2010 <-data.frame("2010", "FF", mean(FF.2010$start_speed))
+      colnames(FF.2010) <- c("Year", "Pitch Type", "ave. speed")
+      
+      FF.2011 <-data.frame("2011", "FF", mean(FF.2011$start_speed))
+      colnames(FF.2011) <- c("Year", "Pitch Type", "ave. speed")
+      
+      FF.2012 <-data.frame("2012", "FF", mean(FF.2012$start_speed))
+      colnames(FF.2012) <- c("Year", "Pitch Type", "ave. speed")
+      
+      FF.2013 <-data.frame("2013", "FF", mean(FF.2013$start_speed))
+      colnames(FF.2013) <- c("Year", "Pitch Type", "ave. speed")
+      
+      FF.2014 <-data.frame("2014", "FF", mean(FF.2014$start_speed))
+      colnames(FF.2014) <- c("Year", "Pitch Type", "ave. speed")
+      
+      FF.2015 <-data.frame("2015", "FF", mean(FF.2015$start_speed))
+      colnames(FF.2015) <- c("Year", "Pitch Type", "ave. speed")
+      
+      FF.2016 <-data.frame("2016", "FF", mean(FF.2016$start_speed))
+      colnames(FF.2016) <- c("Year", "Pitch Type", "ave. speed")
+      
+      FF.2017 <-data.frame("2017", "FF", mean(FF.2017$start_speed))
+      colnames(FF.2017) <- c("Year", "Pitch Type", "ave. speed")
+      
+      FF.2018 <-data.frame("2018", "FF", mean(FF.2018$start_speed))
+      colnames(FF.2018) <- c("Year", "Pitch Type", "ave. speed")
+    # Merge
+      FF.total <- FF.2008 %>% bind_rows(FF.2009)
+      FF.total <- FF.total %>% bind_rows(FF.2010)
+      FF.total <- FF.total %>% bind_rows(FF.2011)
+      FF.total <- FF.total %>% bind_rows(FF.2012)
+      FF.total <- FF.total %>% bind_rows(FF.2013)
+      FF.total <- FF.total %>% bind_rows(FF.2014)
+      FF.total <- FF.total %>% bind_rows(FF.2015)
+      FF.total <- FF.total %>% bind_rows(FF.2016)
+      FF.total <- FF.total %>% bind_rows(FF.2017)
+      FF.total <- FF.total %>% bind_rows(FF.2018)
+  
+  # Slider (SL)
+    # Getting Data  
+      SL.2008 <- total.2008 %>% filter(pitch_type == "SL")
+      SL.2009 <- total.2009 %>% filter(pitch_type == "SL")
+      SL.2010 <- total.2010 %>% filter(pitch_type == "SL")
+      SL.2011 <- total.2011 %>% filter(pitch_type == "SL")
+      SL.2012 <- total.2012 %>% filter(pitch_type == "SL")
+      SL.2013 <- total.2013 %>% filter(pitch_type == "SL")
+      SL.2014 <- total.2014 %>% filter(pitch_type == "SL")
+      SL.2015 <- total.2015 %>% filter(pitch_type == "SL")
+      SL.2016 <- total.2016 %>% filter(pitch_type == "SL")
+      SL.2017 <- total.2017 %>% filter(pitch_type == "SL")
+      SL.2018 <- total.2018 %>% filter(pitch_type == "SL")
+    # Taking speeds
+      SL.2008 <- SL.2008[ ,c(6, 3)]
+      SL.2009 <- SL.2009[ ,c(6, 3)]
+      SL.2010 <- SL.2010[ ,c(6, 3)]
+      SL.2011 <- SL.2011[ ,c(6, 3)]
+      SL.2012 <- SL.2012[ ,c(6, 3)]
+      SL.2013 <- SL.2013[ ,c(6, 3)]
+      SL.2014 <- SL.2014[ ,c(6, 3)]
+      SL.2015 <- SL.2015[ ,c(6, 3)]
+      SL.2016 <- SL.2016[ ,c(6, 3)]
+      SL.2017 <- SL.2017[ ,c(6, 3)]
+      SL.2018 <- SL.2018[ ,c(6, 3)]
+    # ave.
+      SL.2008 <-data.frame("2008", "SL", mean(SL.2008$start_speed))
+      colnames(SL.2008) <- c("Year", "Pitch Type", "ave. speed")
+      
+      SL.2009 <-data.frame("2009", "SL", mean(SL.2009$start_speed))
+      colnames(SL.2009) <- c("Year", "Pitch Type", "ave. speed")
+      
+      SL.2010 <-data.frame("2010", "SL", mean(SL.2010$start_speed))
+      colnames(SL.2010) <- c("Year", "Pitch Type", "ave. speed")
+      
+      SL.2011 <-data.frame("2011", "SL", mean(SL.2011$start_speed))
+      colnames(SL.2011) <- c("Year", "Pitch Type", "ave. speed")
+        
+      SL.2012 <-data.frame("2012", "SL", mean(SL.2012$start_speed))
+      colnames(SL.2012) <- c("Year", "Pitch Type", "ave. speed")
+        
+      SL.2013 <-data.frame("2013", "SL", mean(SL.2013$start_speed))
+      colnames(SL.2013) <- c("Year", "Pitch Type", "ave. speed")
+        
+      SL.2014 <-data.frame("2014", "SL", mean(SL.2014$start_speed))
+      colnames(SL.2014) <- c("Year", "Pitch Type", "ave. speed")
+        
+      SL.2015 <-data.frame("2015", "SL", mean(SL.2015$start_speed))
+      colnames(SL.2015) <- c("Year", "Pitch Type", "ave. speed")
+        
+      SL.2016 <-data.frame("2016", "SL", mean(SL.2016$start_speed))
+      colnames(SL.2016) <- c("Year", "Pitch Type", "ave. speed")
+        
+      SL.2017 <-data.frame("2017", "SL", mean(SL.2017$start_speed))
+      colnames(SL.2017) <- c("Year", "Pitch Type", "ave. speed")
+        
+      SL.2018 <-data.frame("2018", "SL", mean(SL.2018$start_speed))
+      colnames(SL.2018) <- c("Year", "Pitch Type", "ave. speed")
+    # Merge
+      SL.total <- SL.2008 %>% bind_rows(SL.2009)
+      SL.total <- SL.total %>% bind_rows(SL.2010)
+      SL.total <- SL.total %>% bind_rows(SL.2011)
+      SL.total <- SL.total %>% bind_rows(SL.2012)
+      SL.total <- SL.total %>% bind_rows(SL.2013)
+      SL.total <- SL.total %>% bind_rows(SL.2014)
+      SL.total <- SL.total %>% bind_rows(SL.2015)
+      SL.total <- SL.total %>% bind_rows(SL.2016)
+      SL.total <- SL.total %>% bind_rows(SL.2017)
+      SL.total <- SL.total %>% bind_rows(SL.2018)
+      
+  # Curve Ball (CU)
+    # Getting Data  
+      CU.2008 <- total.2008 %>% filter(pitch_type == "CU")
+      CU.2009 <- total.2009 %>% filter(pitch_type == "CU")
+      CU.2010 <- total.2010 %>% filter(pitch_type == "CU")
+      CU.2011 <- total.2011 %>% filter(pitch_type == "CU")
+      CU.2012 <- total.2012 %>% filter(pitch_type == "CU")
+      CU.2013 <- total.2013 %>% filter(pitch_type == "CU")
+      CU.2014 <- total.2014 %>% filter(pitch_type == "CU")
+      CU.2015 <- total.2015 %>% filter(pitch_type == "CU")
+      CU.2016 <- total.2016 %>% filter(pitch_type == "CU")
+      CU.2017 <- total.2017 %>% filter(pitch_type == "CU")
+      CU.2018 <- total.2018 %>% filter(pitch_type == "CU")
+    # Taking speeds
+      CU.2008 <- CU.2008[ ,c(6, 3)]
+      CU.2009 <- CU.2009[ ,c(6, 3)]
+      CU.2010 <- CU.2010[ ,c(6, 3)]
+      CU.2011 <- CU.2011[ ,c(6, 3)]
+      CU.2012 <- CU.2012[ ,c(6, 3)]
+      CU.2013 <- CU.2013[ ,c(6, 3)]
+      CU.2014 <- CU.2014[ ,c(6, 3)]
+      CU.2015 <- CU.2015[ ,c(6, 3)]
+      CU.2016 <- CU.2016[ ,c(6, 3)]
+      CU.2017 <- CU.2017[ ,c(6, 3)]
+      CU.2018 <- CU.2018[ ,c(6, 3)]
+    # ave.
+      CU.2008 <-data.frame("2008", "CU", mean(CU.2008$start_speed))
+      colnames(CU.2008) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CU.2009 <-data.frame("2009", "CU", mean(CU.2009$start_speed))
+      colnames(CU.2009) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CU.2010 <-data.frame("2010", "CU", mean(CU.2010$start_speed))
+      colnames(CU.2010) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CU.2011 <-data.frame("2011", "CU", mean(CU.2011$start_speed))
+      colnames(CU.2011) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CU.2012 <-data.frame("2012", "CU", mean(CU.2012$start_speed))
+      colnames(CU.2012) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CU.2013 <-data.frame("2013", "CU", mean(CU.2013$start_speed))
+      colnames(CU.2013) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CU.2014 <-data.frame("2014", "CU", mean(CU.2014$start_speed))
+      colnames(CU.2014) <- c("Year", "Pitch Type", "ave. speed")
+        
+      CU.2015 <-data.frame("2015", "CU", mean(CU.2015$start_speed))
+      colnames(CU.2015) <- c("Year", "Pitch Type", "ave. speed")
+        
+      CU.2016 <-data.frame("2016", "CU", mean(CU.2016$start_speed))
+      colnames(CU.2016) <- c("Year", "Pitch Type", "ave. speed")
+        
+      CU.2017 <-data.frame("2017", "CU", mean(CU.2017$start_speed))
+      colnames(CU.2017) <- c("Year", "Pitch Type", "ave. speed")
+        
+      CU.2018 <-data.frame("2018", "CU", mean(CU.2018$start_speed))
+      colnames(CU.2018) <- c("Year", "Pitch Type", "ave. speed")
+    # Merge
+      CU.total <- CU.2008 %>% bind_rows(CU.2009)
+      CU.total <- CU.total %>% bind_rows(CU.2010)
+      CU.total <- CU.total %>% bind_rows(CU.2011)
+      CU.total <- CU.total %>% bind_rows(CU.2012)
+      CU.total <- CU.total %>% bind_rows(CU.2013)
+      CU.total <- CU.total %>% bind_rows(CU.2014)
+      CU.total <- CU.total %>% bind_rows(CU.2015)
+      CU.total <- CU.total %>% bind_rows(CU.2016)
+      CU.total <- CU.total %>% bind_rows(CU.2017)
+      CU.total <- CU.total %>% bind_rows(CU.2018)
+      
+  # Changeup (CH)
+    # Getting Data  
+      CH.2008 <- total.2008 %>% filter(pitch_type == "CH")
+      CH.2009 <- total.2009 %>% filter(pitch_type == "CH")
+      CH.2010 <- total.2010 %>% filter(pitch_type == "CH")
+      CH.2011 <- total.2011 %>% filter(pitch_type == "CH")
+      CH.2012 <- total.2012 %>% filter(pitch_type == "CH")
+      CH.2013 <- total.2013 %>% filter(pitch_type == "CH")
+      CH.2014 <- total.2014 %>% filter(pitch_type == "CH")
+      CH.2015 <- total.2015 %>% filter(pitch_type == "CH")
+      CH.2016 <- total.2016 %>% filter(pitch_type == "CH")
+      CH.2017 <- total.2017 %>% filter(pitch_type == "CH")
+      CH.2018 <- total.2018 %>% filter(pitch_type == "CH")
+    # Taking speeds
+      CH.2008 <- CH.2008[ ,c(6, 3)]
+      CH.2009 <- CH.2009[ ,c(6, 3)]
+      CH.2010 <- CH.2010[ ,c(6, 3)]
+      CH.2011 <- CH.2011[ ,c(6, 3)]
+      CH.2012 <- CH.2012[ ,c(6, 3)]
+      CH.2013 <- CH.2013[ ,c(6, 3)]
+      CH.2014 <- CH.2014[ ,c(6, 3)]
+      CH.2015 <- CH.2015[ ,c(6, 3)]
+      CH.2016 <- CH.2016[ ,c(6, 3)]
+      CH.2017 <- CH.2017[ ,c(6, 3)]
+      CH.2018 <- CH.2018[ ,c(6, 3)]
+    # ave.
+      CH.2008 <-data.frame("2008", "CH", mean(CH.2008$start_speed))
+      colnames(CH.2008) <- c("Year", "Pitch Type", "ave. speed")
+        
+      CH.2009 <-data.frame("2009", "CH", mean(CH.2009$start_speed))
+      colnames(CH.2009) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CH.2010 <-data.frame("2010", "CH", mean(CH.2010$start_speed))
+      colnames(CH.2010) <- c("Year", "Pitch Type", "ave. speed")
+        
+      CH.2011 <-data.frame("2011", "CH", mean(CH.2011$start_speed))
+      colnames(CH.2011) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CH.2012 <-data.frame("2012", "CH", mean(CH.2012$start_speed))
+      colnames(CH.2012) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CH.2013 <-data.frame("2013", "CH", mean(CH.2013$start_speed))
+      colnames(CH.2013) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CH.2014 <-data.frame("2014", "CH", mean(CH.2014$start_speed))
+      colnames(CH.2014) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CH.2015 <-data.frame("2015", "CH", mean(CH.2015$start_speed))
+      colnames(CH.2015) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CH.2016 <-data.frame("2016", "CH", mean(CH.2016$start_speed))
+      colnames(CH.2016) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CH.2017 <-data.frame("2017", "CH", mean(CH.2017$start_speed))
+      colnames(CH.2017) <- c("Year", "Pitch Type", "ave. speed")
+      
+      CH.2018 <-data.frame("2018", "CH", mean(CH.2018$start_speed))
+      colnames(CH.2018) <- c("Year", "Pitch Type", "ave. speed")
+    # Merge
+      CH.total <- CH.2008 %>% bind_rows(CH.2009)
+      CH.total <- CH.total %>% bind_rows(CH.2010)
+      CH.total <- CH.total %>% bind_rows(CH.2011)
+      CH.total <- CH.total %>% bind_rows(CH.2012)
+      CH.total <- CH.total %>% bind_rows(CH.2013)
+      CH.total <- CH.total %>% bind_rows(CH.2014)
+      CH.total <- CH.total %>% bind_rows(CH.2015)
+      CH.total <- CH.total %>% bind_rows(CH.2016)
+      CH.total <- CH.total %>% bind_rows(CH.2017)
+      CH.total <- CH.total %>% bind_rows(CH.2018)
+      
+  # Total merge
+    ave.speed <- FF.total %>% bind_rows(SL.total)
+    ave.speed <- ave.speed %>% bind_rows(CU.total)
+    ave.speed <- ave.speed %>% bind_rows(CH.total)
+    
+  # Formating
+      ave.speed$`Pitch Type`[ave.speed$`Pitch Type` =='FF'] <- "ave. Four-Seam Fastball"
+      ave.speed$`Pitch Type`[ave.speed$`Pitch Type` =='SL'] <- "ave. Slider"
+      ave.speed$`Pitch Type`[ave.speed$`Pitch Type` =='CU'] <- "ave. Curveball"
+      ave.speed$`Pitch Type`[ave.speed$`Pitch Type` =='CH'] <- "ave. Changeup"
+    
+# writing to csv to use in shiny
+  write.csv(ave.speed, file = "C:/RMIT/Data vis/Assignment 3/Data/ave speed.csv")
+```
