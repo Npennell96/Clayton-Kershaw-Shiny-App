@@ -353,7 +353,8 @@ Then was writen to a csv file so as it can be load in the shiny app.
 # writing to csv to use in shiny
   write.csv(Kershaw.total, file = "C:/RMIT/Data vis/Assignment 3/Data/Kershaw total.csv")
 ```   
-   
+To Find the average pitch speed of Kershas main pitches, Four-Seam Fastball, Changeup, Curveball, Slider, from year to year and agian writing to csv.
+
 ## Finding Kershaw Average Speed For Main Pitches
 ```{r Kershaw ave., warning=FALSE, eval=FALSE, message=FALSE }
 # Finding Kershaw ave. speed  
@@ -648,10 +649,9 @@ Then was writen to a csv file so as it can be load in the shiny app.
   
 # writing to csv for shiny
   write.csv(Kershaw.speed, file = "C:/RMIT/Data vis/Assignment 3/Data/Kershaw speed.csv")
-```
-<a href="#top">Back to top</a>
-  
-    
+```  
+Doing the same but this time for the all players in the league to find the league average for the same four pitches. 
+ 
 ## Finding League Average For the Same Pitches
 ```{r ave. speeds, warning=FALSE, eval=FALSE, message=FALSE}
 # Finding Ave.speeds
