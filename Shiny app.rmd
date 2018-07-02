@@ -1,0 +1,74 @@
+# Shiny App
+## Loading and Formating data and Packges
+```
+# loading packges
+library(ggplot2)
+library(shiny)
+library(dplyr)
+library(tidyr)
+library(plotly)
+library(DT)
+
+
+# Data
+  # data from pitchRx
+    Kershaw <- read.csv("C:/RMIT/Data vis/Assignment 3/assignment3/Kershaw total.csv")
+    # formating
+      # adding year mounth and day coloums
+        Kershaw$year <- Kershaw$date
+        Kershaw <- Kershaw %>% separate(year, c("year", "month", "day"))
+        Kershaw$date <- as.Date(Kershaw$date)
+        
+  # pitch tracking baseball savant
+    savant.tracking <- read.csv("C:/RMIT/Data vis/Assignment 3/assignment3/Pitch Tracking baseball savant.csv")
+    colnames(savant.tracking) <- c("Year", "Pitch Type", "no.", "no. to RHB", "no. to LHB", "%", "MPH", 
+                                   "PA", "AB", "H", "1B", "2B", "3B", "HR", "SO", "BBE", "BA", "XBA",
+                                   "SLG", "XSLG", "WOBA", "XWOBA", "EV", "LA", "Spin", "BB%", "K%", 
+                                   "Whiff%")
+    savant.tracking <- savant.tracking[ ,c(1:15, 26,27)]
+    savant.tracking[is.na(savant.tracking)] <- " "
+    
+    
+  # Baseball-Reference tables
+    Baseball.Reference.1 <- read.csv("C:/RMIT/Data vis/Assignment 3/assignment3/baseball-reference table.csv")
+    Baseball.Reference.2 <- read.csv("C:/RMIT/Data vis/Assignment 3/assignment3/baseball-reference table 2.csv")
+    # merging and pick wanted vaules
+      Baseball.Reference <- full_join(Baseball.Reference.1, Baseball.Reference.2, 
+                                      by = c("Year", "Age", "Tm", "Lg", "G", "GS", "IP", "Awards")) 
+      Baseball.Reference <- Baseball.Reference[ , c(1:13, 15, 16, 19,20, 22, 35, 47, 51)]
+      colnames(Baseball.Reference) <- c("Year", "Age", "Tm", "Lg", "W", "L", "W-L%",
+                                        "ERA", "G", "GS", "GF", "CG", "SHO", "IP", "H",
+                                        "HR", "BB", "SO", "Awards", "WAR", "Salary")
+    # Ordering
+      Baseball.Reference <- Baseball.Reference[ , c(1:7,14,9:13,8,20,15:18,21,19)]
+      Baseball.Reference[12,1] <- "Total"
+      Baseball.Reference[is.na(Baseball.Reference)] <- " "
+      Baseball.Reference[12, 15] <- Baseball.Reference[14, 15]
+      Baseball.Reference[12, 20] <- Baseball.Reference[14, 20]
+      Baseball.Reference[13, 20] <- "test"
+      Baseball.Reference <- Baseball.Reference[1:12, ]
+  
+  # ave.speeds
+    ave.speed <- read.csv("C:/RMIT/Data vis/Assignment 3/assignment3/ave speed.csv")
+    ave.speed <- ave.speed[ ,2:4]
+    colnames(ave.speed) <- c("Year", "pitch_type", "ave.speed")
+    
+  # Kershaw speed
+    Kershaw.speed <- read.csv("C:/RMIT/Data vis/Assignment 3/assignment3/Kershaw speed.csv")
+    Kershaw.speed <- Kershaw.speed[ ,2:4]
+    colnames(Kershaw.speed) <- c("Year", "pitch_type", "ave.speed")
+    
+    
+  # Home plate, and strike zones
+    # Estimated strike zone
+      strike.zone <- geom_rect(aes(xmin = -.95, xmax = .95, ymin = 1.6, ymax = 3.5), 
+                               fill = NA, color = "black", size = 0.4)
+    # Home plate, with MLB specified dimensions 
+      hp.x <- c(-.95,-.95,0,.95,.95)
+      hp.y <- c(0,-.475,-0.95,-.475,0)
+      hp <- data.frame(hp.x, hp.y)
+  
+      home.plate <- geom_polygon(data = hp, aes(x = hp.x , y = hp.y ), 
+                                 fill = NA, color = "black", size = 0.5)
+                                 
+```
