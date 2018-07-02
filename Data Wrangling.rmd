@@ -1,4 +1,5 @@
 # Data Wrangling
+Data wrangling was done outside the shiny app to keep the size of the file small enough to upload to shinyapps.io (http://www.shinyapps.io/) 
 
 ## Loading Packges
 ```{r packages, warning=FALSE, eval=FALSE, message=FALSE}
@@ -39,8 +40,8 @@ My first step was to make a database for each of the years that data can be gath
     scrape("2018-01-01", "2018-05-03", connect = database.2018$con)
 
 ```
-PitchRx has 5 tables of data that are scraped; atbat, action, pitch, po runner. I was just looking at the atbat and pitch table.
-The atbat table being each
+PitchRx has 5 tables of data that are scraped; atbat, action, pitch, po runner. I was just looking at the atbat and pitch table. (notes on each table: https://github.com/Npennell96/Clayton-Kershaw-Shiny-App/blob/master/Notes/PitchRx%20Variables.rmd). Each table was then pulled from the database with only the wanted column variable, merged and then preseaon games where removed.
+
 
 ## Formating data
 ```{r Formating, warning=FALSE, eval=FALSE, message=FALSE}
@@ -279,8 +280,7 @@ The atbat table being each
 
 
 ```
-<a href="#top">Back to top</a>  
-  
+Then just insatnces where Clayton Kershaw pitched where taken and merged.  
     
 ## Gathering Subset of Data, For Needed Player (Clayton Kershaw)
 ```{r Kershaw, warning=FALSE, eval=FALSE, message=FALSE}
@@ -308,7 +308,13 @@ The atbat table being each
     Kershaw.total <- Kershaw.total %>% bind_rows(Kershaw.2016)
     Kershaw.total <- Kershaw.total %>% bind_rows(Kershaw.2017)
     Kershaw.total <- Kershaw.total %>% bind_rows(Kershaw.2018)
-  
+```
+Adding the full name of each pitch type, rather than a two letter abbreviation, and removing the unwated pitch types. As well as adding a simple outcome of a pitch. 
+
+Then was writen to a csv file so as it can be load in the shiny app.
+
+## Adding Variables
+```  
   # adding full pitch name
     Kershaw.total$pitch_desc <- Kershaw.total$pitch_type
     
@@ -346,9 +352,7 @@ The atbat table being each
     
 # writing to csv to use in shiny
   write.csv(Kershaw.total, file = "C:/RMIT/Data vis/Assignment 3/Data/Kershaw total.csv")
-```
-<a href="#top">Back to top</a>
-   
+```   
    
 ## Finding Kershaw Average Speed For Main Pitches
 ```{r Kershaw ave., warning=FALSE, eval=FALSE, message=FALSE }
