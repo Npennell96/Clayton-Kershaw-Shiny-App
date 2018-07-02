@@ -1,5 +1,11 @@
 # Shiny App
 ## Loading and Formating data and Packges
+
+csv files taken from data wrangling (https://github.com/Npennell96/Clayton-Kershaw-Shiny-App/blob/master/Data%20Wrangling.rmd),  
+Baseball Savant (https://baseballsavant.mlb.com/savant-player/clayton-kershaw-477132?stats=statcast-r-pitching-mlb&season=2018) and  
+Baseball Reference (https://www.baseball-reference.com/players/k/kershcl01.shtml)  
+
+
 ```
 # loading packges
 library(ggplot2)
@@ -57,8 +63,10 @@ library(DT)
     Kershaw.speed <- read.csv("C:/RMIT/Data vis/Assignment 3/assignment3/Kershaw speed.csv")
     Kershaw.speed <- Kershaw.speed[ ,2:4]
     colnames(Kershaw.speed) <- c("Year", "pitch_type", "ave.speed")
-    
-    
+```   
+creating Shapes for home plate and the strike zone.  
+ 
+``` 
   # Home plate, and strike zones
     # Estimated strike zone
       strike.zone <- geom_rect(aes(xmin = -.95, xmax = .95, ymin = 1.6, ymax = 3.5), 
@@ -71,4 +79,192 @@ library(DT)
       home.plate <- geom_polygon(data = hp, aes(x = hp.x , y = hp.y ), 
                                  fill = NA, color = "black", size = 0.5)
                                  
+```
+
+## UI
+```
+# Define UI for application that draws a histogram
+ui <- fluidPage(
+  titlePanel("Clayton Kershaw"),
+    navbarPage(" ", 
+      tabPanel("Player Info", 
+        sidebarLayout(
+          sidebarPanel(width = 3,
+                img(src = "http://mlb.mlb.com/mlb/images/players/head_shot/477132.jpg", height = 200),
+                br(),
+                p(strong("Full Name:"), "Clayton Edward Kershaw"),
+                p(strong("Position:"), "Pitcher"),
+                p(strong("Bats:"), "Left - ", strong("Throws:"), "Left"),
+                p(strong("Height:"), "6-3, (193cm)", strong("Weight:"), "228lb, (103kg)"),
+                p(strong("Current Team:"), "Los Angeles Dodgers"),
+                p(strong("Born:"), "3/19/1988 in Dallas, TX"),
+                p(strong("Draft:"), "2006, Los Angeles Dodgers, 1st rd. (7th overall)"),
+                p(strong("High School:"), "Highland Park, Dallas, TX"),
+                p(strong("Debut:"), "5/25/2008, (Age 20-067d, 16,932nd in MLB history)"),
+                p(strong("Nicknames:"), "Kersh, The Claw, Kid K, The Minotour of Kersh")
+            ),
+            mainPanel(tableOutput("table.1")) 
+        )
+      ),
+      
+      tabPanel("Pitch location",
+        fluidRow(
+          column(4,
+            selectInput(inputId = "year", label =  "Year", 
+                        choices = c("2008", "2009", "2010", "2011", "2012", 
+                                  "2013", "2014", "2015", "2016", "2017", "2018"), selected = "2018")
+          ),
+          column(4,
+            selectInput(inputId = "hand", label =  "Batter Hand", 
+                        choices = c("Either", "Left Handed", "Right Handed"))
+          ),
+          column(4,
+            selectInput(inputId = "outcome", label =  "Outcome", 
+                        choices = c("All Pitches", "Hit", "Home Run", "Swing and Miss"))
+          ),
+          column(12, align = "center",
+            plotOutput("pitch.chart")
+          )
+        ) 
+      ),
+  
+      tabPanel("Pitch Type Analysis",
+        mainPanel(
+          tabsetPanel(
+            tabPanel("Pitch Frequency", plotlyOutput("plotly.1", width = 1200)),
+            tabPanel("Pitch Speed (MPH)", plotlyOutput("plotly.2", width = 1200)),
+            tabPanel("Data Summary", dataTableOutput("table.2"))
+          )
+        )  
+      ),
+  
+      tabPanel("Glossary and References",
+               h1("Glossary"),
+               p(span("TAB", style = "color:white"), strong("- TM:"), "Team"),
+               p(span("TAB", style = "color:white"), strong("- Lg:"), "League"),
+               p(span("TAB", style = "color:white"), strong("- W:"), "Wins"),
+               p(span("TAB", style = "color:white"), strong("- L:"), "Losses"),
+               p(span("TAB", style = "color:white"), strong("- W-L%:"), "Win-Loss Percent"),
+               p(span("TAB", style = "color:white"), strong("- IP"), "Innings Pitched"),
+               p(span("TAB", style = "color:white"), strong("- G:"), "Games Played"),
+               p(span("TAB", style = "color:white"), strong("- GS:"), "Games Starded"),
+               p(span("TAB", style = "color:white"), strong("- GF:"), "Games Finished"),
+               p(span("TAB", style = "color:white"), strong("- CG:"), " Complted Games"),
+               p(span("TAB", style = "color:white"), strong("- SHO:"), "Shoutouts"),
+               p(span("TAB", style = "color:white"), strong("- ERA:"), "Earned Run Average"),
+               p(span("TAB", style = "color:white"), strong("- WAR:"), "Wins Above Replacment"),
+               p(span("TAB", style = "color:white"), strong("- H:"), "Hits Allowed"),
+               p(span("TAB", style = "color:white"), strong("- 1B:"), "Singles Allowed"),
+               p(span("TAB", style = "color:white"), strong("- 2B:"), "Doubles Allowed"),
+               p(span("TAB", style = "color:white"), strong("- 3B:"), "Triples Allowed"),
+               p(span("TAB", style = "color:white"), strong("- HR:"), "Home Run Allowed"),
+               p(span("TAB", style = "color:white"), strong("- BB:"), "Walk"),
+               p(span("TAB", style = "color:white"), strong("- SO:"), "Strikeouts"),
+               p(span("TAB", style = "color:white"), strong("- %:"), "Frequency"),
+               p(span("TAB", style = "color:white"), strong("- MPH:"), "Average speed, in MHP"),
+               p(span("TAB", style = "color:white"), strong("- PA:"), "Plate Apperance"),
+               p(span("TAB", style = "color:white"), strong("- AB:"), "At Bats"),
+               p(span("TAB", style = "color:white"), strong("- BB%:"), "Wlak rate"),
+               p(span("TAB", style = "color:white"), strong("- K%:"), "Strikeout rate"),
+               h1("References"),
+               h2(span("1", style = "color:white"), "Data Package"),
+               span("TABTAB", style = "color:white"), a(strong("- PitchRx"), 
+                                                     herf = "https://github.com/cpsievert/pitchRx"),
+               h2(span("1", style = "color:white"), "Infomation and tables from:"),
+               span("TABTAB", style = "color:white"), a(strong("- MLB Site"), 
+                                            herf = "http://m.mlb.com/player/477132/clayton-kershaw"),
+               br(),
+               span("TABTAB", style = "color:white"), a(strong("- Baseball-Reference"), 
+                              herf = "https://www.baseball-reference.com/players/k/kershcl01.shtml"),
+               h2(span("1", style = "color:white"), "Article"),
+               a(span("TABTAB", style = "color:white"), 
+                 strong("- Is Peak Kershaw Gone for Good?, by  Ben Lindbergh at thr Ringer"), 
+                 herf = "https://www.theringer.com/mlb/2018/5/3/17314506/los-angeles-dodgers-clayton-kershaw-fastball-velocity"),
+               br(),
+               br(),
+               br(),
+               br(),
+               br()
+               
+               
+      )
+  )
+)
+```
+
+## Sever
+```
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+  
+  # carre table
+    output$table.1 <- renderTable({Baseball.Reference})
+    
+  # Pitch chart  
+    output$pitch.chart <- renderPlot({
+      # Data  
+        data <- Kershaw %>% filter(year == input$year)
+      # Batter Hand  
+        if (input$hand == "Right Handed"){
+          data <- data %>% filter(stand == "R")
+        } else if (input$hand == "Left Handed"){
+          data <- data %>% filter(stand == "L")
+        }
+      # Outcome
+        if (input$outcome != "All Pitches"){
+          data <- data %>% filter(outcome == input$outcome)
+        }
+      # Plot
+        ggplot(data = data, aes(x = px, y = pz)) + 
+          coord_equal() + xlab("feet from center of home plate") + ylab("feet above the ground") + 
+          geom_jitter(data = data, aes(colour = pitch_desc), alpha = 1, size = 1) +
+          scale_size(range = c(0.005,2.5)) + facet_grid(~pitch_desc) + theme_minimal() +
+          strike.zone + home.plate +theme(legend.position="none") + xlim(-2, 2) + ylim(-1, 5)
+
+    })
+  
+   
+  # Frequncy plot
+    output$plotly.1 <- renderPlotly({
+     
+      # split by year and pitch type
+        split.pitch.date <- table(Kershaw$pitch_desc, Kershaw$year, 
+                                  dnn = c("pitch_type", "year")) %>% as.data.frame()
+      # adding total pitches thrown on each year
+        split.total <- table(Kershaw$year, dnn= 'year') %>% as.data.frame()
+        split <- full_join(split.pitch.date, split.total, by = "year")
+      # removing unknow wanted data
+        split[split == 0] <- NA
+        
+      # Plotly
+        plot_ly() %>% add_trace(data = split, x = ~year, y = ~Freq.x/Freq.y, color = ~pitch_type, 
+                                type = 'scatter', mode = 'lines+markers', connectgaps = FALSE) %>% 
+          layout(title = "Pitch Type Frequency", xaxis = list(title = "Season"), 
+                 yaxis = list (title = "Frequency")) 
+    })
+   
+  # Speed
+    output$plotly.2 <- renderPlotly({
+      Kershaw.speed.1 <- Kershaw.speed %>% filter(pitch_type == "Kershaw Four-Seam Fastball")
+      Kershaw.speed.2 <- Kershaw.speed %>% filter(pitch_type != "Kershaw Four-Seam Fastball")
+      ave.speed.1 <- ave.speed %>% filter(pitch_type == "ave. Four-Seam Fastball")
+      ave.speed.2 <- ave.speed %>% filter(pitch_type != "ave. Four-Seam Fastball")
+      
+      plot_ly() %>% add_trace(data = Kershaw.speed.1, x = ~Year, y = ~ave.speed, color = ~pitch_type, 
+                              type = 'scatter', mode = 'lines+markers', connectgaps = FALSE) %>% 
+        add_trace(data = Kershaw.speed.2, x = ~Year, y = ~ave.speed, color = ~pitch_type, 
+                  type = 'scatter', mode = 'lines+markers', connectgaps = FALSE, 
+                  visible = "legendonly") %>%
+        add_trace(data = ave.speed.1, x = ~Year, y = ~ave.speed, color = ~pitch_type, 
+                  type = 'scatter', mode = 'lines+markers', connectgaps = FALSE) %>% 
+        add_trace(data = ave.speed.2, x = ~Year, y = ~ave.speed, color = ~pitch_type, 
+                  type = 'scatter', mode = 'lines+markers', connectgaps = FALSE, visible = "legendonly")
+    })
+   
+  # Table 2
+    output$table.2 <- renderDataTable(datatable({savant.tracking}))
+}
+   
+# Run the application 
+shinyApp(ui = ui, server = server)
 ```
