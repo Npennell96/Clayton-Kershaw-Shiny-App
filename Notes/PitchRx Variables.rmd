@@ -1,0 +1,136 @@
+# Variables Notes
+Notes on variables I mad my self from a few sources.
+
+## sources
+[fangrpahs](https://www.fangraphs.com/tht/tht-live/gameday-pitchf-x-changes-for-2010/)  
+[fastballs wordpress](https://fastballs.wordpress.com/2007/08/02/glossary-of-the-gameday-pitch-fields/)  
+[Baseball Prospectus](https://www.baseballprospectus.com/news/article/30465/pitching-backward-what-we-know-about-spin-rate/)
+
+## Pitch Table 
+1.	des: outcome
+2.	des_es: outcomes in Spanish
+3.	id: unique identification number per pitch within a game.
+4.	type: b = ball, s = strike/Fouls, x = ball in play
+5.	tfs: time stamp
+6.	tfs_zulu: Spanish time stamp
+7.	x: old horizontal location of the pitch as it crosses over home plate, from gameday 
+8.	y: old Vertical location of the pitch as it crosses over home plate, from gameday
+9.	sv_id: time stamp of when the pitch was first was first detected in the air, YYMMDD_hhmmss
+10.	start_speed: speed when thrown (mph), best for velocity
+11.	end_speed: speed over the plate (mph)
+12.	sz_top: distance in feet to the top of batters rulebook strike zone
+13.	sz_bot: distance in feet to the bottom of batters rulebook strike zone
+14.	pfx_x: horizontal movement of the pitch, in inches, from release to home plate
+15.	pfx_z: vertical movement of the pitch, in inches, from release to home plate
+16.	px: horizontal distance in feet from the centre of home plate, as the ball crosses home plate
+17.	pz: vertical distance in feet from the centre of home plate, as the ball crosses home plate
+18.	x0: horizontal distance in feet, measured at the initial point.
+19.	y0: distance in feet from home plate to where pitchf/x starts to measure initial parameters ,constant of 50 feet. 
+20.	z0: vertical distance in feet, measured at the initial point.
+21.	vx0: horizontal velocity of the pitch at release, in feet per second
+22.	vy0: forward velocity of the pitch at release, in feet per second
+23.	vz0: vertical velocity of the pitch at release, in feet per second
+24.	ax: horizontal acceleration of the pitch at release, in feet per second
+25.	ay: forward acceleration of the pitch at release, in feet per second
+26.	az: : vertical acceleration of the pitch at release, in feet per second
+27.	break_y: distance from home plate, in feet, to where the pitch achieves its greatest deviation
+28.	break_angle: the angle, in degrees, from the vertical to the straight line path from the release point to where the pitch crossed 
+29.	break_length: the distance, in inches, between the trajectory of the pitch at any point between the release point and the front of home plate
+30.	pitch_type: most probable pitch type
+31.	type_confidence: the value of weight to the probability the pitch type is correct
+32.	zone: the part of the strike zone the ball crosses home plate in
+33.	nasty: how hard a ball is to hit 
+34.	spin_dir: 
+35.	spin_rate: How many times a ball spins from released till it crosses home plate
+36.	cc: auto generated comment, based on strike zone
+37.	mt: 
+38.	url: link to data file
+39.	inning_side: top or bottom
+40.	inning: inning number
+41.	next: 
+42.	num: 
+43.	on_1b: id number of player on 1st base, if any
+44.	on_2b: id number of player on 2nd base, if any
+45.	on_3b: id number of player on 3rd base, if any
+46.	count: count, balls-strikes, (0-0, 0-1, 0-2, 1-0, 1-1, 1-2, 2-0, 2-1, 2-2, 3-0, 3-1, 3-2) 
+47.	gameday_link: link to gameday data
+48.	event_num: 
+49.	play_guid:
+
+## At bat Table
+1.	pitcher: pitcher id number
+2.	batter: batter id number
+3.	num:
+4.	b: balls
+5.	s: strikes
+6.	o: outs
+7.	start_tfs: start time, on east coast, EST
+8.	start_tfs_zulu:
+9.	stand: left or right handed batting
+10.	b_height: batter height
+11.	p_throws: pitcher left or right throwing
+12.	atbat_des: at bat outcome (detailed)
+13.	atbat_des_es: at bat outcome in Spanish (detailed)
+14.	event: single, double, sac bunt,…
+15.	score: (doesn’t work)
+16.	home_team_runs: home team runs
+17.	away_team_runs: away team runs
+18.	url: link to data file
+19.	inning_side: top or bottom
+20.	inning: inning
+21.	next: 
+22.	event2:
+23.	event3:
+24.	batter_name: batter name
+25.	pitcher_name: pitcher name
+26.	event4: 
+27.	gameday_link: link to gameday data
+28.	date: date
+29.	event_num:
+30.	event_es: event in Spanish
+31.	event2_es:
+32.	event3_es:
+33.	event4_es:
+
+## Pitch type
+-	FA: Fastball
+-	FF: Four-Seam Fastball
+-	FT: Two-seam Fastball
+-	FC: Cutter (Cut Fastball)
+-	FS: Splitter
+-	PO: Pitch Out
+-	FO : Pitch Out
+-	SI: Sinker
+-	SL: Slider
+-	CU: Curveball
+-	KC: Knuckle-curve
+-	EP: Eephus
+-	CH: Changeup
+-	SC: Screwball
+-	KN: Knuckleball 
+-	AB: Automatic Ball
+-	IN: Intentional Walk
+-	UN: Unknow
+-	<NA>: unidentified
+
+## Des Type
+-	Automatic Ball
+-	Ball
+-	Ball in Dirt
+-	Called strike
+-	Foul
+-	Foul (Runner Going)
+-	Foul Bunt
+-	Foul Tip
+-	Hit By Pitch
+-	In Play, no out
+-	In Play, out(s)
+-	In Play, run(s)
+-	Intent Ball
+-	Missed Bunt
+-	Pitchout
+-	Swinging Pitchout
+-	Swinging Strike
+-	Swinging Strike (Blocked)
+
+
