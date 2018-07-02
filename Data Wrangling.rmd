@@ -1,7 +1,5 @@
 # Data Wrangling
-  
-Decided to load and clean the data outside shiny then write the needed data to a csv. The load the csv in the shiny app deal with the large file size of the initial data.
-  
+
 ## Loading Packges
 ```{r packages, warning=FALSE, eval=FALSE, message=FALSE}
 library(ggplot2)
@@ -9,7 +7,8 @@ library(pitchRx)# need version 1.8.4 or later for 2017 and foward games, used gi
 library(RSQLite)
 library(dplyr)
 ```
-  
+My first step was to make a database for each of the years that data can be gathered from, 2008 - current day. It was easier to compute if each databse was one year as it keeps size and thus run times down. The second part of was to scrape the data with the pitchRx packge(https://github.com/cpsievert/pitchRx) and store it in the created database. 
+
 ## Loading data
 ```{r loading data, warning=FALSE, eval=FALSE, message=FALSE}
 # loading data
@@ -40,10 +39,9 @@ library(dplyr)
     scrape("2018-01-01", "2018-05-03", connect = database.2018$con)
 
 ```
-It was easier to process for a computer if data was split into each year
-   
- <a href="#top">Back to top</a>  
-     
+PitchRx has 5 tables of data that are scraped; atbat, action, pitch, po runner. I was just looking at the atbat and pitch table.
+The atbat table being each
+
 ## Formating data
 ```{r Formating, warning=FALSE, eval=FALSE, message=FALSE}
 # Formating data
