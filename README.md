@@ -7,3 +7,5 @@ The aim for the assignment was to creat a data visual, to help support a news ar
 I gathered data from, [pitchRx package](https://github.com/cpsievert/pitchRx), [MLB.com](https://www.mlb.com/), [Baseball Reference](https://www.baseball-reference.com/) and [Baseball Savant](https://baseballsavant.mlb.com/).
 
 ![](https://github.com/Npennell96/Clayton-Kershaw-Shiny-App/blob/master/Images/Player%20info.PNG)
+
+[LINK TO SHINY APP](https://npennell.shinyapps.io/Math2270_Assignment3/)
